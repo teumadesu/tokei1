@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>株式市場みたいな時計 (防災サウンド対応版)</title>
+  <title>株式市場みたいな時計 (メニュー・スクロール修正版)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
@@ -87,6 +87,7 @@
     }
     .menu-toggle-btn:hover { background: rgba(255, 255, 255, 0.4); }
 
+    /* サイドメニュー（スクロールを大幅強化） */
     .side-menu {
       position: absolute;
       top: 0;
@@ -96,13 +97,14 @@
       background: rgba(8, 12, 20, 0.98);
       border-right: 2px solid #0052cc;
       z-index: 1001;
-      padding: 20px 15px;
+      padding: 20px 15px 50px 15px; /* 最下部に十分な余白を設定 */
       display: flex;
       flex-direction: column;
       gap: 15px;
       transition: left 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
       box-shadow: 10px 0 30px rgba(0,0,0,0.9);
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch; /* スマホでのなめらかなスクロール */
     }
     .side-menu.open { left: 0; }
 
@@ -112,6 +114,7 @@
       align-items: center;
       border-bottom: 2px solid #334155;
       padding-bottom: 10px;
+      flex-shrink: 0; /* ヘッダーが潰れないように設定 */
     }
     .menu-title { font-size: 1.1rem; font-weight: bold; color: #38bdf8; }
     .close-btn { background: none; border: none; color: #fff; font-size: 1.8rem; cursor: pointer; }
@@ -124,8 +127,9 @@
       border-left: 3px solid #38bdf8;
       padding-left: 8px;
       margin-top: 5px;
+      flex-shrink: 0;
     }
-    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-shrink: 0; }
     
     .menu-btn {
       background: #1e293b;
@@ -384,7 +388,7 @@
         <button class="menu-btn" onclick="testTsunami()">【津波情報】橙</button>
       </div>
 
-      <span class="menu-section-title">8. システム</span>
+      <span class="menu-section-title">8. システム操作</span>
       <div class="menu-grid">
         <button class="menu-btn" onclick="toggleFullScreen()">全画面表示 (F11)</button>
         <button class="menu-btn" onclick="location.reload()">再読み込み</button>
@@ -496,27 +500,21 @@
       osc.stop(audioCtx.currentTime + duration);
     }
 
-    // ==========================================
-    // 防災アラート専用効果音
-    // ==========================================
+    // アラート音再生
     function playAlertSound(type) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
 
       if (type === 'eew-alert') {
-        // 【EEW 警報】ピロンピロン警告音（3回ループ）
         for (let i = 0; i < 3; i++) {
-          setTimeout(() => playBeep(1046.5, 0.15), i * 350);       // C6
-          setTimeout(() => playBeep(1318.5, 0.2),  i * 350 + 150); // E6
+          setTimeout(() => playBeep(1046.5, 0.15), i * 350);
+          setTimeout(() => playBeep(1318.5, 0.2),  i * 350 + 150);
         }
       } else if (type === 'eew-warning') {
-        // 【EEW 予報】ピッ・ポッ（注意喚起）
         playBeep(880, 0.12);
         setTimeout(() => playBeep(659.25, 0.2), 150);
       } else if (type === 'seismic') {
-        // 【震度情報】落ち着いた通知音
         playBeep(523.25, 0.25);
       } else if (type === 'tsunami') {
-        // 【津波情報】ウー・ウー（サイレン風低音）
         playBeep(440, 0.4);
         setTimeout(() => playBeep(349.23, 0.5), 450);
       }
@@ -689,7 +687,7 @@
       alertTimer = setTimeout(() => { bar.style.display = "none"; }, 50000);
     }
 
-    // 手動テスト（サウンド連携付き）
+    // 手動テスト
     function testEEW(scale) {
       if (scale < 5) {
         showAlert("【緊急地震速報（予報）】", "千葉県沖で地震 予想最大震度：3", "eew-warning", "eew-warning");
@@ -700,7 +698,7 @@
     function testShindo() { showAlert("【震度情報】", "最大震度4を観測した地震が発生しました（震源：日向灘）", "seismic-info", "seismic"); }
     function testTsunami() { showAlert("【津波注意報】", "太平洋沿岸に津波注意報が発表されました", "tsunami-info", "tsunami"); }
 
-    // リアルタイム防災API（サウンド連携付き）
+    // リアルタイム防災API
     async function checkRealDisasterAPI() {
       try {
         const res = await fetch('https://api.p2pquake.net/v2/history?codes=551,552,554&limit=1');
