@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>株式市場みたいな時計 (メニュー・スクロール修正版)</title>
+  <title>株式市場みたいな時計 (大音量・リアル速報音版)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
@@ -60,14 +60,22 @@
     .alert-bar.eew-alert {
       background-color: #d32f2f;
       color: #ffffff;
-      animation: blink-red 1s infinite alternate;
+      animation: blink-red 0.5s infinite alternate;
     }
     .alert-bar.seismic-info { background-color: #0055ff; color: #ffffff; }
-    .alert-bar.tsunami-info { background-color: #ff6600; color: #ffffff; }
+    .alert-bar.tsunami-info {
+      background-color: #ff6600;
+      color: #ffffff;
+      animation: blink-orange 0.6s infinite alternate;
+    }
 
     @keyframes blink-red {
       0% { background-color: #d32f2f; }
-      100% { background-color: #880000; }
+      100% { background-color: #660000; }
+    }
+    @keyframes blink-orange {
+      0% { background-color: #ff6600; }
+      100% { background-color: #993300; }
     }
 
     /* メニューボタン */
@@ -87,7 +95,7 @@
     }
     .menu-toggle-btn:hover { background: rgba(255, 255, 255, 0.4); }
 
-    /* サイドメニュー（スクロールを大幅強化） */
+    /* サイドメニュー */
     .side-menu {
       position: absolute;
       top: 0;
@@ -97,14 +105,14 @@
       background: rgba(8, 12, 20, 0.98);
       border-right: 2px solid #0052cc;
       z-index: 1001;
-      padding: 20px 15px 50px 15px; /* 最下部に十分な余白を設定 */
+      padding: 20px 15px 50px 15px;
       display: flex;
       flex-direction: column;
       gap: 15px;
       transition: left 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
       box-shadow: 10px 0 30px rgba(0,0,0,0.9);
       overflow-y: auto;
-      -webkit-overflow-scrolling: touch; /* スマホでのなめらかなスクロール */
+      -webkit-overflow-scrolling: touch;
     }
     .side-menu.open { left: 0; }
 
@@ -114,7 +122,7 @@
       align-items: center;
       border-bottom: 2px solid #334155;
       padding-bottom: 10px;
-      flex-shrink: 0; /* ヘッダーが潰れないように設定 */
+      flex-shrink: 0;
     }
     .menu-title { font-size: 1.1rem; font-weight: bold; color: #38bdf8; }
     .close-btn { background: none; border: none; color: #fff; font-size: 1.8rem; cursor: pointer; }
@@ -207,7 +215,6 @@
       white-space: nowrap;
     }
 
-    /* 点滅時 */
     .current-value-panel.flash-active {
       background-color: #ffffff !important;
     }
@@ -254,7 +261,6 @@
 
     .footer-line { height: 8px; background-color: #cc0000; }
 
-    /* モバイル・縦型レイアウト */
     @media (max-width: 768px) {
       .screen-container { max-width: 100vw; max-height: 100vh; }
       .main-body {
@@ -486,7 +492,9 @@
 
     // Web Audio API
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playBeep(freq, duration) {
+
+    // 汎用ビープ（音量増大版）
+    function playBeep(freq, duration, vol = 0.3) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
@@ -495,28 +503,61 @@
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start();
-      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.setValueAtTime(vol, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
       osc.stop(audioCtx.currentTime + duration);
     }
 
-    // アラート音再生
-    function playAlertSound(type) {
+    // 津波警報サイレン（周波数が上下移動する大音量サイレン）
+    function playSiren(duration, loops = 3) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
+      for (let l = 0; l < loops; l++) {
+        const startTime = audioCtx.currentTime + (l * duration);
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth'; // 警報用の鋭い波形
+        osc.frequency.setValueAtTime(400, startTime);
+        osc.frequency.linearRampToValueAtTime(800, startTime + duration * 0.5);
+        osc.frequency.linearRampToValueAtTime(400, startTime + duration);
 
+        gain.gain.setValueAtTime(0.4, startTime);
+        gain.gain.linearRampToValueAtTime(0.01, startTime + duration);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+      }
+    }
+
+    // 高音速報アラート（EEW警報用・超高速リピート音）
+    function playEEWAlertSound() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      // ピロロン・ピロロンを5連打（大音量＆高周波）
+      for (let i = 0; i < 5; i++) {
+        const t = i * 0.28;
+        setTimeout(() => {
+          playBeep(1046.5, 0.12, 0.5); // C6
+          setTimeout(() => playBeep(1318.5, 0.15, 0.5), 90); // E6
+        }, t * 1000);
+      }
+    }
+
+    // 防災アラート音生成分岐
+    function playAlertSound(type) {
       if (type === 'eew-alert') {
-        for (let i = 0; i < 3; i++) {
-          setTimeout(() => playBeep(1046.5, 0.15), i * 350);
-          setTimeout(() => playBeep(1318.5, 0.2),  i * 350 + 150);
-        }
+        playEEWAlertSound();
       } else if (type === 'eew-warning') {
-        playBeep(880, 0.12);
-        setTimeout(() => playBeep(659.25, 0.2), 150);
+        // EEW予報：高音のチャイム風（ピン・ポン！）
+        playBeep(1046.5, 0.15, 0.4);
+        setTimeout(() => playBeep(783.99, 0.25, 0.4), 140);
       } else if (type === 'seismic') {
-        playBeep(523.25, 0.25);
+        // 震度情報：2音のハッキリした通知音
+        playBeep(659.25, 0.2, 0.35);
+        setTimeout(() => playBeep(880, 0.3, 0.35), 180);
       } else if (type === 'tsunami') {
-        playBeep(440, 0.4);
-        setTimeout(() => playBeep(349.23, 0.5), 450);
+        // 津波情報：大音量サイレン（2.5秒間）
+        playSiren(0.8, 3);
       }
     }
 
@@ -554,10 +595,10 @@
       document.getElementById('high-display').innerText = weekdays[targetTime.getDay()];
       document.getElementById('low-display').innerText = tzName;
 
-      if (soundTime && now.getSeconds() === 0) playBeep(880, 0.8);
+      if (soundTime && now.getSeconds() === 0) playBeep(880, 0.8, 0.3);
     }
 
-    // 操作UI関数
+    // UI操作
     function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); }
 
     function setMode(mode, btnEl) {
@@ -664,7 +705,7 @@
         isFlashing = true;
         const panel = document.getElementById('current-panel');
         panel.classList.add('flash-active');
-        if (soundFlash) playBeep(1200, 0.05);
+        if (soundFlash) playBeep(1200, 0.05, 0.2);
 
         setTimeout(() => {
           panel.classList.remove('flash-active');
