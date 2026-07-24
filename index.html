@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>株式市場みたいな時計 (スマホ・レスポンシブ対応版)</title>
+  <title>株式市場みたいな時計 (防災サウンド対応版)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
@@ -44,9 +44,7 @@
       transition: all 0.3s ease;
     }
 
-    /* ==========================================
-       防災情報テロップ
-       ========================================== */
+    /* 防災情報テロップ */
     .alert-bar {
       display: none;
       padding: 0.6rem 1rem;
@@ -72,9 +70,7 @@
       100% { background-color: #880000; }
     }
 
-    /* ==========================================
-       超高機能メガ・サイドメニュー
-       ========================================== */
+    /* メニューボタン */
     .menu-toggle-btn {
       position: absolute;
       top: 12px;
@@ -148,9 +144,7 @@
     .menu-btn:hover { background: #0052cc; border-color: #3b82f6; color: #fff; }
     .menu-btn.active { background: #0052cc; border-color: #60a5fa; color: #fff; }
 
-    /* ==========================================
-       メイン画面 & カラーテーマ
-       ========================================== */
+    /* メイン画面 */
     .header {
       background-color: #000000;
       padding: 0.8rem 1.5rem 0.8rem 6.5rem;
@@ -256,9 +250,7 @@
 
     .footer-line { height: 8px; background-color: #cc0000; }
 
-    /* ==========================================
-       スマホ最適化 & 縦型レイアウトモード (.layout-vertical)
-       ========================================== */
+    /* モバイル・縦型レイアウト */
     @media (max-width: 768px) {
       .screen-container { max-width: 100vw; max-height: 100vh; }
       .main-body {
@@ -273,7 +265,6 @@
       .header { padding-left: 5.5rem; }
     }
 
-    /* 手動縦型モードが有効化された時のバグ防止CSS */
     .screen-container.layout-vertical {
       max-width: 450px;
       max-height: 100vh;
@@ -313,17 +304,14 @@
   <div class="scanlines" id="scanlines"></div>
 
   <div class="screen-container" id="screen-container">
-    <!-- メニューボタン -->
     <button class="menu-toggle-btn" onclick="toggleMenu()">メニュー</button>
 
-    <!-- サイドパネル -->
     <div class="side-menu" id="side-menu">
       <div class="menu-header">
         <span class="menu-title">STUDIO CONTROL PANEL</span>
         <button class="close-btn" onclick="toggleMenu()">×</button>
       </div>
 
-      <!-- 1. 表示モード選択 -->
       <span class="menu-section-title">1. 市場・銘柄モード (全12種)</span>
       <div class="menu-grid">
         <button class="menu-btn active" onclick="setMode('nikkei', this)">日経平均株価</button>
@@ -340,7 +328,6 @@
         <button class="menu-btn" onclick="setMode('nkfutures', this)">日経225先物</button>
       </div>
 
-      <!-- 2. テーマカラー切替 -->
       <span class="menu-section-title">2. テーマカラー (全8種)</span>
       <div class="menu-grid">
         <button class="menu-btn" onclick="setTheme('blue')">標準色</button>
@@ -353,7 +340,6 @@
         <button class="menu-btn" onclick="setTheme('alert')">緊急事態</button>
       </div>
 
-      <!-- 3. 時計・タイムゾーン設定 -->
       <span class="menu-section-title">3. タイムゾーン & 日付表示</span>
       <div class="menu-grid">
         <button class="menu-btn" onclick="setTimezone('JST', 'JST (UTC+9)')">JST (東京)</button>
@@ -366,7 +352,6 @@
         <button class="menu-btn" id="format-toggle-btn" onclick="toggleTimeFormat()">24時間制</button>
       </div>
 
-      <!-- 4. 表示カスタマイズ -->
       <span class="menu-section-title">4. 表示・演出オプション</span>
       <div class="menu-grid">
         <button class="menu-btn" id="sec-toggle-btn" onclick="toggleSeconds()">秒表示: ON</button>
@@ -377,7 +362,6 @@
         <button class="menu-btn" id="layout-toggle-btn" onclick="toggleVerticalLayout()">縦型表示: OFF</button>
       </div>
 
-      <!-- 5. フォント切替 -->
       <span class="menu-section-title">5. 数字フォント</span>
       <div class="menu-grid">
         <button class="menu-btn" onclick="setFont('Courier New, monospace')">デジタル (等幅)</button>
@@ -386,14 +370,12 @@
         <button class="menu-btn" onclick="setFont('Arial Black, sans-serif')">極太インパクト</button>
       </div>
 
-      <!-- 6. サウンド効果 -->
       <span class="menu-section-title">6. 効果音</span>
       <div class="menu-grid">
         <button class="menu-btn" id="sound-time-btn" onclick="toggleTimeSound()">時報(ポーン): OFF</button>
         <button class="menu-btn" id="sound-flash-btn" onclick="toggleFlashSound()">更新効果音: OFF</button>
       </div>
 
-      <!-- 7. テロップ手動テスト -->
       <span class="menu-section-title">7. テロップ動作テスト</span>
       <div class="menu-grid">
         <button class="menu-btn" onclick="testEEW(3)">【EEW予報】黄</button>
@@ -402,27 +384,23 @@
         <button class="menu-btn" onclick="testTsunami()">【津波情報】橙</button>
       </div>
 
-      <!-- 8. システム -->
-      <span class="menu-section-title">8. システム操作</span>
+      <span class="menu-section-title">8. システム</span>
       <div class="menu-grid">
         <button class="menu-btn" onclick="toggleFullScreen()">全画面表示 (F11)</button>
         <button class="menu-btn" onclick="location.reload()">再読み込み</button>
       </div>
     </div>
 
-    <!-- 防災テロップ -->
     <div class="alert-bar" id="alert-bar">
       <span class="alert-title" id="alert-title">【緊急地震速報】</span>
       <span class="alert-text" id="alert-text">---</span>
     </div>
 
-    <!-- ヘッダー -->
     <div class="header">
       <span class="header-title-jp" id="title-jp">日経平均株価</span>
       <span class="header-title-en" id="title-en">Nikkei 225</span>
     </div>
 
-    <!-- メインボディ -->
     <div class="main-body" id="main-body">
       <div class="label-box">
         <span class="label-jp">現在値</span>
@@ -483,11 +461,10 @@
     let isVertical = false;
     let alertTimer = null;
     let currentMode = 'nikkei';
-    let tzOffset = 0; // JST基準
+    let tzOffset = 0;
     let tzName = "JST (UTC+9)";
-    let dateFormatIndex = 0; // 0: YYYY.MM.DD, 1: YYYY年MM月DD日, 2: MM/DD/YYYY
+    let dateFormatIndex = 0;
 
-    // 銘柄データ
     const modeConfigs = {
       nikkei:    { jp: "日経平均株価", en: "Nikkei 225", prefix: "+" },
       topix:     { jp: "TOPIX", en: "Tokyo Stock Price Index", prefix: "+" },
@@ -519,10 +496,35 @@
       osc.stop(audioCtx.currentTime + duration);
     }
 
-    // 時計更新メイン関数
+    // ==========================================
+    // 防災アラート専用効果音
+    // ==========================================
+    function playAlertSound(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      if (type === 'eew-alert') {
+        // 【EEW 警報】ピロンピロン警告音（3回ループ）
+        for (let i = 0; i < 3; i++) {
+          setTimeout(() => playBeep(1046.5, 0.15), i * 350);       // C6
+          setTimeout(() => playBeep(1318.5, 0.2),  i * 350 + 150); // E6
+        }
+      } else if (type === 'eew-warning') {
+        // 【EEW 予報】ピッ・ポッ（注意喚起）
+        playBeep(880, 0.12);
+        setTimeout(() => playBeep(659.25, 0.2), 150);
+      } else if (type === 'seismic') {
+        // 【震度情報】落ち着いた通知音
+        playBeep(523.25, 0.25);
+      } else if (type === 'tsunami') {
+        // 【津波情報】ウー・ウー（サイレン風低音）
+        playBeep(440, 0.4);
+        setTimeout(() => playBeep(349.23, 0.5), 450);
+      }
+    }
+
+    // 時計更新
     function updateClock() {
       const now = new Date();
-      // タイムゾーン計算
       const targetTime = new Date(now.getTime() + tzOffset * 3600 * 1000);
 
       let hours = targetTime.getHours();
@@ -537,12 +539,10 @@
 
       document.getElementById('clock-display').innerText = timeStr;
 
-      // 前日比ダイナミック生成
       const config = modeConfigs[currentMode];
       const mockChange = (Math.sin(now.getTime() / 1000) * 12 + 105).toFixed(2);
       document.getElementById('date-display').innerText = `${config.prefix}${mockChange}`;
 
-      // 日付フォーマット
       const year  = targetTime.getFullYear();
       const month = String(targetTime.getMonth() + 1).padStart(2, '0');
       const date  = String(targetTime.getDate()).padStart(2, '0');
@@ -559,7 +559,7 @@
       if (soundTime && now.getSeconds() === 0) playBeep(880, 0.8);
     }
 
-    // スイッチ＆メニュー操作
+    // 操作UI関数
     function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); }
 
     function setMode(mode, btnEl) {
@@ -660,7 +660,6 @@
       }
     }
 
-    // ランダムフラッシュ
     function checkRandomFlash() {
       if (!allowFlash || isFlashing) return;
       if (Math.random() < 0.3) {
@@ -676,29 +675,32 @@
       }
     }
 
-    // テロップ表示
-    function showAlert(title, text, styleClass) {
+    // テロップ表示＆音再生処理
+    function showAlert(title, text, styleClass, soundType) {
       const bar = document.getElementById('alert-bar');
       document.getElementById('alert-title').innerText = title;
       document.getElementById('alert-text').innerText = text;
       bar.className = "alert-bar " + styleClass;
       bar.style.display = "block";
 
+      if (soundType) playAlertSound(soundType);
+
       if (alertTimer) clearTimeout(alertTimer);
       alertTimer = setTimeout(() => { bar.style.display = "none"; }, 50000);
     }
 
+    // 手動テスト（サウンド連携付き）
     function testEEW(scale) {
       if (scale < 5) {
-        showAlert("【緊急地震速報（予報）】", "千葉県沖で地震 予想最大震度：3", "eew-warning");
+        showAlert("【緊急地震速報（予報）】", "千葉県沖で地震 予想最大震度：3", "eew-warning", "eew-warning");
       } else {
-        showAlert("【緊急地震速報（警報）】", "茨城県沖で地震 予想最大震度：5弱 強い揺れに警戒", "eew-alert");
+        showAlert("【緊急地震速報（警報）】", "茨城県沖で地震 予想最大震度：5弱 強い揺れに警戒", "eew-alert", "eew-alert");
       }
     }
-    function testShindo() { showAlert("【震度情報】", "最大震度4を観測した地震が発生しました（震源：日向灘）", "seismic-info"); }
-    function testTsunami() { showAlert("【津波注意報】", "太平洋沿岸に津波注意報が発表されました", "tsunami-info"); }
+    function testShindo() { showAlert("【震度情報】", "最大震度4を観測した地震が発生しました（震源：日向灘）", "seismic-info", "seismic"); }
+    function testTsunami() { showAlert("【津波注意報】", "太平洋沿岸に津波注意報が発表されました", "tsunami-info", "tsunami"); }
 
-    // リアルタイム防災API
+    // リアルタイム防災API（サウンド連携付き）
     async function checkRealDisasterAPI() {
       try {
         const res = await fetch('https://api.p2pquake.net/v2/history?codes=551,552,554&limit=1');
@@ -710,15 +712,15 @@
           const area = info.earthquake.hypocenter.name || "不明";
           const maxScaleNum = info.earthquake.maxScale ? (info.earthquake.maxScale / 10) : 0;
           if (maxScaleNum >= 4.5) {
-            showAlert("【緊急地震速報（警報）】", `震源地：${area} / 予想最大震度：5弱以上`, "eew-alert");
+            showAlert("【緊急地震速報（警報）】", `震源地：${area} / 予想最大震度：5弱以上`, "eew-alert", "eew-alert");
           } else {
-            showAlert("【緊急地震速報（予報）】", `震源地：${area} / 予想最大震度：${maxScaleNum || '1〜4'}`, "eew-warning");
+            showAlert("【緊急地震速報（予報）】", `震源地：${area} / 予想最大震度：${maxScaleNum || '1〜4'}`, "eew-warning", "eew-warning");
           }
         } else if (info.code === 552 && info.earthquake && info.earthquake.maxScale >= 30) {
           const area = info.earthquake.hypocenter.name || "各地";
-          showAlert("【震度情報】", `最大震度${info.earthquake.maxScale / 10}を観測（震源：${area}）`, "seismic-info");
+          showAlert("【震度情報】", `最大震度${info.earthquake.maxScale / 10}を観測（震源：${area}）`, "seismic-info", "seismic");
         } else if (info.code === 554) {
-          showAlert("【津波情報】", "海岸付近の方はただちに高台へ避難してください", "tsunami-info");
+          showAlert("【津波情報】", "海岸付近の方はただちに高台へ避難してください", "tsunami-info", "tsunami");
         }
       } catch (e) {}
     }
