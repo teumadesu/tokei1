@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ニュース速報風 デジタルクロック</title>
+  <title>株式市場みたいなやつの時計/title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -43,7 +43,6 @@
     .alert-title { font-size: 1.8rem; }
     .alert-text { font-size: 1.4rem; margin-left: 15px; }
 
-    /* テロップカラーバリエーション */
     .alert-bar.eew-warning { background-color: #ffd700; color: #000; }
     .alert-bar.eew-alert {
       background-color: #d32f2f;
@@ -59,7 +58,7 @@
     }
 
     /* ==========================================
-       メニューバー（サイドパネル）
+       高機能メガ・サイドメニュー
        ========================================== */
     .menu-toggle-btn {
       position: absolute;
@@ -68,8 +67,8 @@
       background: rgba(255, 255, 255, 0.2);
       color: #fff;
       border: 1px solid rgba(255, 255, 255, 0.4);
-      padding: 5px 12px;
-      font-size: 0.9rem;
+      padding: 6px 14px;
+      font-size: 0.95rem;
       font-weight: bold;
       border-radius: 4px;
       cursor: pointer;
@@ -81,18 +80,18 @@
     .side-menu {
       position: absolute;
       top: 0;
-      left: -320px;
-      width: 300px;
+      left: -380px;
+      width: 350px;
       height: 100%;
-      background: rgba(10, 15, 30, 0.95);
+      background: rgba(10, 15, 25, 0.98);
       border-right: 2px solid #0052cc;
       z-index: 1001;
       padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
-      transition: left 0.3s ease;
-      box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+      gap: 18px;
+      transition: left 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+      box-shadow: 10px 0 25px rgba(0,0,0,0.8);
       overflow-y: auto;
     }
     .side-menu.open { left: 0; }
@@ -101,40 +100,56 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 2px solid #333;
+      border-bottom: 2px solid #334155;
       padding-bottom: 10px;
     }
-    .menu-title { font-size: 1.2rem; font-weight: bold; color: #00ffcc; }
+    .menu-title { font-size: 1.2rem; font-weight: bold; color: #38bdf8; }
     .close-btn {
       background: none;
       border: none;
       color: #fff;
-      font-size: 1.5rem;
+      font-size: 1.6rem;
       cursor: pointer;
     }
 
-    .menu-group { display: flex; flex-direction: column; gap: 8px; }
-    .menu-group-title { font-size: 0.85rem; color: #888; text-transform: uppercase; }
+    .menu-section-title {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 5px;
+      border-left: 3px solid #38bdf8;
+      padding-left: 8px;
+    }
+    .menu-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
     .menu-btn {
       background: #1e293b;
-      color: #fff;
+      color: #e2e8f0;
       border: 1px solid #334155;
-      padding: 10px;
+      padding: 8px 10px;
       text-align: left;
       border-radius: 4px;
       cursor: pointer;
+      font-size: 0.85rem;
       font-weight: bold;
-      transition: all 0.2s;
+      transition: all 0.15s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .menu-btn:hover { background: #0052cc; border-color: #3b82f6; }
-    .menu-btn.active { background: #0052cc; border-color: #60a5fa; }
+    .menu-btn:hover { background: #0052cc; border-color: #3b82f6; color: #fff; }
+    .menu-btn.active { background: #0052cc; border-color: #60a5fa; color: #fff; }
 
     /* ==========================================
-       メインレイアウト & テーマ設定
+       メイン画面 & カラーテーマ
        ========================================== */
     .header {
       background-color: #000;
-      padding: 0.8rem 2.5rem 0.8rem 6rem; /* ボタン用の左余白 */
+      padding: 0.8rem 2.5rem 0.8rem 7rem;
       display: flex;
       align-items: baseline;
       gap: 15px;
@@ -144,7 +159,7 @@
 
     .main-body {
       flex: 1;
-      background-color: #0052cc; /* デフォルト：ブルー */
+      background-color: #0052cc;
       padding: 1.5rem 2.5rem;
       display: grid;
       grid-template-columns: 280px 1fr;
@@ -156,8 +171,12 @@
 
     /* テーマ定義 */
     .theme-red { background-color: #b91c1c !important; }
-    .theme-dark { background-color: #111827 !important; }
+    .theme-dark { background-color: #0f172a !important; }
     .theme-green { background-color: #065f46 !important; }
+    .theme-orange { background-color: #c2410c !important; }
+    .theme-matrix { background-color: #022c22 !important; }
+    .theme-retro { background-color: #3f3f46 !important; }
+    .theme-alert { background-color: #7f1d1d !important; }
 
     .label-box { display: flex; flex-direction: column; }
     .label-jp { font-size: 2.2rem; font-weight: bold; line-height: 1.1; }
@@ -179,7 +198,7 @@
       letter-spacing: -2px;
     }
 
-    /* 点滅フラッシュ */
+    /* フラッシュ時 */
     .current-value-panel.flash-active {
       background-color: #ffffff !important;
       border: 4px solid #002b80;
@@ -229,38 +248,80 @@
 
   <div class="screen-container">
     <!-- メニュー開閉ボタン -->
-    <button class="menu-toggle-btn" onclick="toggleMenu()">☰ MENU</button>
+    <button class="menu-toggle-btn" onclick="toggleMenu()">☰ メニュー・機能拡張</button>
 
-    <!-- サイドメニューパネル -->
+    <!-- 高機能メガ・サイドメニュー -->
     <div class="side-menu" id="side-menu">
       <div class="menu-header">
-        <span class="menu-title">SETTINGS & MODES</span>
+        <span class="menu-title">STUDIO SYSTEM MENU</span>
         <button class="close-btn" onclick="toggleMenu()">×</button>
       </div>
 
-      <!-- 表示モード切替 -->
-      <div class="menu-group">
-        <span class="menu-group-title">表示モード</span>
-        <button class="menu-btn active" onclick="setMode('nikkei')">日経平均株価 モード</button>
-        <button class="menu-btn" onclick="setMode('topix')">TOPIX モード</button>
-        <button class="menu-btn" onclick="setMode('usdjpy')">ドル/円 為替モード</button>
-        <button class="menu-btn" onclick="setMode('dow')">NYダウ モード</button>
+      <!-- 1. 表示モード切替 -->
+      <span class="menu-section-title">1. 表示モード選択 (全8種)</span>
+      <div class="menu-grid">
+        <button class="menu-btn active" onclick="setMode('nikkei', this)">日経平均株価</button>
+        <button class="menu-btn" onclick="setMode('topix', this)">TOPIX</button>
+        <button class="menu-btn" onclick="setMode('usdjpy', this)">ドル / 円</button>
+        <button class="menu-btn" onclick="setMode('dow', this)">NYダウ</button>
+        <button class="menu-btn" onclick="setMode('btc', this)">BTC / 円</button>
+        <button class="menu-btn" onclick="setMode('nasdaq', this)">NASDAQ</button>
+        <button class="menu-btn" onclick="setMode('sp500', this)">S&P 500</button>
+        <button class="menu-btn" onclick="setMode('gold', this)">金先物 (Gold)</button>
       </div>
 
-      <!-- カラーテーマ切替 -->
-      <div class="menu-group">
-        <span class="menu-group-title">カラーテーマ</span>
-        <button class="menu-btn" onclick="setTheme('blue')">ANNブルー (標準)</button>
+      <!-- 2. テーマカラー切替 -->
+      <span class="menu-section-title">2. カラーテーマ (全8色)</span>
+      <div class="menu-grid">
+        <button class="menu-btn" onclick="setTheme('blue')">ANNブルー</button>
         <button class="menu-btn" onclick="setTheme('red')">ニュースRED</button>
         <button class="menu-btn" onclick="setTheme('dark')">ナイトブラック</button>
         <button class="menu-btn" onclick="setTheme('green')">サイバーグリーン</button>
+        <button class="menu-btn" onclick="setTheme('orange')">サンセット橙</button>
+        <button class="menu-btn" onclick="setTheme('matrix')">マトリックス</button>
+        <button class="menu-btn" onclick="setTheme('retro')">昭和TVレトロ</button>
+        <button class="menu-btn" onclick="setTheme('alert')">警報レッド</button>
       </div>
 
-      <!-- エフェクト設定 -->
-      <div class="menu-group">
-        <span class="menu-group-title">演出設定</span>
-        <button class="menu-btn" id="flash-toggle-btn" onclick="toggleFlashSetting()">点滅エフェクト: ON</button>
-        <button class="menu-btn" onclick="toggleFullScreen()">全画面表示 (F11)</button>
+      <!-- 3. 画面・パネルカスタム -->
+      <span class="menu-section-title">3. カスタマイズ・表示切り替え</span>
+      <div class="menu-grid">
+        <button class="menu-btn" id="sec-toggle-btn" onclick="toggleSeconds()">秒表示: ON</button>
+        <button class="menu-btn" id="format-toggle-btn" onclick="toggleTimeFormat()">24時間制</button>
+        <button class="menu-btn" id="change-panel-btn" onclick="toggleChangePanel()">前日比: 表示</button>
+        <button class="menu-btn" id="flash-toggle-btn" onclick="toggleFlashSetting()">白点滅: ON</button>
+      </div>
+
+      <!-- 4. フォントカスタマイズ -->
+      <span class="menu-section-title">4. 数字フォントスタイル</span>
+      <div class="menu-grid">
+        <button class="menu-btn" onclick="setFont('Courier New, monospace')">デジタル (等幅)</button>
+        <button class="menu-btn" onclick="setFont('sans-serif')">ゴシック体</button>
+        <button class="menu-btn" onclick="setFont('serif')">明朝体</button>
+        <button class="menu-btn" onclick="setFont('Arial Black, sans-serif')">極太インパクト</button>
+      </div>
+
+      <!-- 5. サウンド設定 -->
+      <span class="menu-section-title">5. サウンド・効果音</span>
+      <div class="menu-grid">
+        <button class="menu-btn" id="sound-time-btn" onclick="toggleTimeSound()">時報(ポーン): OFF</button>
+        <button class="menu-btn" id="sound-flash-btn" onclick="toggleFlashSound()">更新効果音: OFF</button>
+      </div>
+
+      <!-- 6. テロップ動作確認テスト -->
+      <span class="menu-section-title">6. 防災テロップ動作テスト</span>
+      <div class="menu-grid">
+        <button class="menu-btn" onclick="testEEW(3)">【EEW予報】黄</button>
+        <button class="menu-btn" onclick="testEEW(5)">【EEW警報】赤</button>
+        <button class="menu-btn" onclick="testShindo()">【震度情報】青</button>
+        <button class="menu-btn" onclick="testTsunami()">【津波情報】橙</button>
+      </div>
+
+      <!-- 7. システム操作 -->
+      <span class="menu-section-title">7. システム</span>
+      <div class="menu-grid">
+        <button class="menu-btn" onclick="toggleFullScreen()">全画面 (F11)</button>
+        <button class="menu-btn" onclick="location.reload()">画面リセット</button>
       </div>
     </div>
 
@@ -286,11 +347,11 @@
         <span class="time-text" id="clock-display">00:00:00</span>
       </div>
 
-      <div class="label-box">
+      <div class="label-box" id="change-label-box">
         <span class="label-jp">前日比</span>
         <span class="label-en">Change</span>
       </div>
-      <div class="change-value-panel">
+      <div class="change-value-panel" id="change-value-panel">
         <span class="change-text" id="date-display">+0.00</span>
       </div>
 
@@ -326,78 +387,148 @@
 
   <script>
     let isFlashing = false;
-    let allowFlash = true; // 点滅機能のON/OFF
+    let allowFlash = true;
+    let showSeconds = true;
+    let is24Hour = true;
+    let showChange = true;
+    let soundTime = false;
+    let soundFlash = false;
     let alertTimer = null;
     let currentMode = 'nikkei';
 
-    // モード設定定義
+    // モード定義
     const modeConfigs = {
       nikkei: { jp: "日経平均株価", en: "Nikkei 225", prefix: "+" },
       topix:  { jp: "TOPIX", en: "Tokyo Stock Price Index", prefix: "+" },
       usdjpy: { jp: "外国為替", en: "USD / JPY", prefix: "¥" },
-      dow:    { jp: "NYダウ", en: "Dow Jones Industrial Average", prefix: "+" }
+      dow:    { jp: "NYダウ", en: "Dow Jones Industrial Average", prefix: "+" },
+      btc:    { jp: "ビットコイン", en: "Bitcoin / JPY", prefix: "₿" },
+      nasdaq: { jp: "NASDAQ", en: "NASDAQ Composite", prefix: "+" },
+      sp500:  { jp: "S&P 500", en: "S&P 500 Index", prefix: "+" },
+      gold:   { jp: "金先物", en: "Gold Futures", prefix: "$" }
     };
 
+    // 音声コンテキスト (Web Audio API)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playBeep(freq, duration) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
     // ==========================================
-    // 1. メイン時計・表示更新
+    // 時計 ＆ メイン表示更新
     // ==========================================
     function updateClock() {
       const now = new Date();
-      const hours   = String(now.getHours()).padStart(2, '0');
+      let hours = now.getHours();
       const minutes = String(now.getMinutes()).padStart(2, '0');
       const seconds = String(now.getSeconds()).padStart(2, '0');
 
+      // 12h / 24h 変換
+      if (!is24Hour) {
+        hours = hours % 12 || 12;
+      }
+      hours = String(hours).padStart(2, '0');
+
+      // 秒表示切替
+      let timeStr = `${hours}:${minutes}`;
+      if (showSeconds) timeStr += `:${seconds}`;
+
+      document.getElementById('clock-display').innerText = timeStr;
+      
+      // 前日比動的微変動
+      const config = modeConfigs[currentMode];
+      const mockChange = (Math.sin(now.getTime() / 1000) * 12 + 105).toFixed(2);
+      document.getElementById('date-display').innerText = `${config.prefix}${mockChange}`;
+
+      // 日付・曜日
       const year  = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const date  = String(now.getDate()).padStart(2, '0');
       const weekdays = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
 
-      // 時刻表示
-      document.getElementById('clock-display').innerText = `${hours}:${minutes}:${seconds}`;
-      
-      // 前日比ダイナミック演出
-      const config = modeConfigs[currentMode];
-      const mockChange = (Math.sin(now.getTime() / 1000) * 12 + 105).toFixed(2);
-      document.getElementById('date-display').innerText = `${config.prefix}${mockChange}`;
-
-      // 日付・曜日等
       document.getElementById('open-display').innerText = `${year}.${month}.${date}`;
       document.getElementById('high-display').innerText = weekdays[now.getDay()];
       document.getElementById('low-display').innerText = "JST (UTC+9)";
+
+      // 時報サウンド (毎分0秒)
+      if (soundTime && now.getSeconds() === 0) {
+        playBeep(880, 0.8);
+      }
     }
 
     // ==========================================
-    // 2. メニュー & モード制御
+    // メニュー & スイッチ関数群
     // ==========================================
     function toggleMenu() {
       document.getElementById('side-menu').classList.toggle('open');
     }
 
-    function setMode(mode) {
+    function setMode(mode, btnEl) {
       currentMode = mode;
       const config = modeConfigs[mode];
       document.getElementById('title-jp').innerText = config.jp;
       document.getElementById('title-en').innerText = config.en;
 
-      // ボタンのActive表示切替
-      document.querySelectorAll('.menu-group:nth-child(2) .menu-btn').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-
+      if (btnEl) {
+        btnEl.parentElement.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+        btnEl.classList.add('active');
+      }
       updateClock();
     }
 
     function setTheme(theme) {
       const mainBody = document.getElementById('main-body');
-      mainBody.className = "main-body"; // リセット
+      mainBody.className = "main-body";
+      if (theme !== 'blue') mainBody.classList.add(`theme-${theme}`);
+    }
 
-      if (theme === 'red') mainBody.classList.add('theme-red');
-      if (theme === 'dark') mainBody.classList.add('theme-dark');
-      if (theme === 'green') mainBody.classList.add('theme-green');
+    function toggleSeconds() {
+      showSeconds = !showSeconds;
+      document.getElementById('sec-toggle-btn').innerText = `秒表示: ${showSeconds ? 'ON' : 'OFF'}`;
+      updateClock();
+    }
+
+    function toggleTimeFormat() {
+      is24Hour = !is24Hour;
+      document.getElementById('format-toggle-btn').innerText = is24Hour ? "24時間制" : "12時間制";
+      updateClock();
+    }
+
+    function toggleChangePanel() {
+      showChange = !showChange;
+      document.getElementById('change-label-box').style.display = showChange ? 'flex' : 'none';
+      document.getElementById('change-value-panel').style.display = showChange ? 'block' : 'none';
+      document.getElementById('change-panel-btn').innerText = `前日比: ${showChange ? '表示' : '非表示'}`;
+    }
+
+    function setFont(fontFamily) {
+      const targets = document.querySelectorAll('.time-text, .change-text, .detail-value');
+      targets.forEach(el => el.style.fontFamily = fontFamily);
     }
 
     function toggleFlashSetting() {
       allowFlash = !allowFlash;
-      document.getElementById('flash-toggle-btn').innerText = `点滅エフェクト: ${allowFlash ? 'ON' : 'OFF'}`;
+      document.getElementById('flash-toggle-btn').innerText = `白点滅: ${allowFlash ? 'ON' : 'OFF'}`;
+    }
+
+    function toggleTimeSound() {
+      soundTime = !soundTime;
+      document.getElementById('sound-time-btn').innerText = `時報(ポーン): ${soundTime ? 'ON' : 'OFF'}`;
+    }
+
+    function toggleFlashSound() {
+      soundFlash = !soundFlash;
+      document.getElementById('sound-flash-btn').innerText = `更新効果音: ${soundFlash ? 'ON' : 'OFF'}`;
     }
 
     function toggleFullScreen() {
@@ -409,7 +540,7 @@
     }
 
     // ==========================================
-    // 3. ランダム白フラッシュ（10秒に約3回）
+    // 点滅演出
     // ==========================================
     function checkRandomFlash() {
       if (!allowFlash || isFlashing) return;
@@ -418,6 +549,8 @@
         isFlashing = true;
         const panel = document.getElementById('current-panel');
         panel.classList.add('flash-active');
+
+        if (soundFlash) playBeep(1200, 0.05);
 
         const flashDuration = Math.floor(Math.random() * 500) + 500;
         setTimeout(() => {
@@ -428,7 +561,7 @@
     }
 
     // ==========================================
-    // 4. 防災情報API連携（自動監視）
+    // 防災情報テロップ ＆ テスト機能
     // ==========================================
     function showAlert(title, text, styleClass) {
       const bar = document.getElementById('alert-bar');
@@ -438,13 +571,27 @@
       bar.className = "alert-bar " + styleClass;
       bar.style.display = "block";
 
-      // 最終報から50秒後に自動削除
       if (alertTimer) clearTimeout(alertTimer);
       alertTimer = setTimeout(() => {
         bar.style.display = "none";
       }, 50000);
     }
 
+    function testEEW(scale) {
+      if (scale < 5) {
+        showAlert("【緊急地震速報（予報）】", "千葉県沖で地震 予想最大震度：3", "eew-warning");
+      } else {
+        showAlert("【緊急地震速報（警報）】", "茨城県沖で地震 予想最大震度：5弱 強い揺れに警戒", "eew-alert");
+      }
+    }
+    function testShindo() {
+      showAlert("【震度情報】", "最大震度4を観測した地震が発生しました（震源：日向灘）", "seismic-info");
+    }
+    function testTsunami() {
+      showAlert("【津波注意報】", "太平洋沿岸に津波注意報が発表されました 海岸から離れてください", "tsunami-info");
+    }
+
+    // リアルタイム防災API
     async function checkRealDisasterAPI() {
       try {
         const res = await fetch('https://api.p2pquake.net/v2/history?codes=551,552,554&limit=1');
@@ -452,34 +599,25 @@
         if (!data || data.length === 0) return;
 
         const info = data[0];
-
-        // 1. 緊急地震速報 (code 551)
         if (info.code === 551 && info.earthquake && info.earthquake.hypocenter) {
           const area = info.earthquake.hypocenter.name || "不明";
           const maxScaleNum = info.earthquake.maxScale ? (info.earthquake.maxScale / 10) : 0;
-          
-          if (maxScaleNum >= 4.5) { // 震度5弱以上 ➔ 警報（赤）
+          if (maxScaleNum >= 4.5) {
             showAlert("【緊急地震速報（警報）】", `震源地：${area} / 予想最大震度：5弱以上 強い揺れに警戒`, "eew-alert");
-          } else { // 震度1〜4 ➔ 予報（黄）
+          } else {
             showAlert("【緊急地震速報（予報）】", `震源地：${area} / 予想最大震度：${maxScaleNum || '1〜4'}`, "eew-warning");
           }
-        }
-        
-        // 2. 震度情報 (code 552 / 震度3以上)
-        else if (info.code === 552 && info.earthquake && info.earthquake.maxScale >= 30) {
+        } else if (info.code === 552 && info.earthquake && info.earthquake.maxScale >= 30) {
           const area = info.earthquake.hypocenter.name || "各地";
           const scaleStr = info.earthquake.maxScale / 10;
           showAlert("【震度情報】", `最大震度${scaleStr}を観測（震源：${area}）`, "seismic-info");
-        }
-
-        // 3. 津波情報 (code 554)
-        else if (info.code === 554) {
+        } else if (info.code === 554) {
           showAlert("【津波情報】", "海岸付近の方はただちに高台へ避難してください", "tsunami-info");
         }
       } catch (e) {}
     }
 
-    // 定期実行処理
+    // 定期実行
     setInterval(updateClock, 1000);
     setInterval(checkRandomFlash, 1000);
     setInterval(checkRealDisasterAPI, 3000);
