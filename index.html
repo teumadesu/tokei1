@@ -3,19 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>株式市場みたいなやつの時計/title>
+  <title>株式市場みたいな時計</title>
   <style>
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
     body {
-      margin: 0;
-      background-color: #000;
+      background-color: #000000;
       font-family: 'Hiragino Kaku Gothic ProN', 'BIZ UDPGothic', 'メイリオ', sans-serif;
-      color: #fff;
+      color: #ffffff;
       height: 100vh;
+      width: 100vw;
       display: flex;
       justify-content: center;
       align-items: center;
       overflow: hidden;
+      user-select: none;
+    }
+
+    /* CRTレトロ走査線オーバーレイ */
+    .scanlines {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+      z-index: 800;
+      pointer-events: none;
+      display: none;
     }
 
     .screen-container {
@@ -23,10 +36,18 @@
       height: 100vh;
       max-width: 1280px;
       max-height: 720px;
-      background-color: #000;
+      background-color: #000000;
       display: flex;
       flex-direction: column;
       position: relative;
+      box-shadow: 0 0 50px rgba(0,0,0,0.9);
+      transition: all 0.3s ease;
+    }
+
+    /* 縦型レイアウト対応 */
+    .screen-container.layout-vertical {
+      max-width: 450px;
+      max-height: 800px;
     }
 
     /* ==========================================
@@ -38,60 +59,58 @@
       font-weight: bold;
       border-bottom: 4px solid rgba(255, 255, 255, 0.4);
       z-index: 900;
-      transition: background-color 0.3s, color 0.3s;
     }
     .alert-title { font-size: 1.8rem; }
     .alert-text { font-size: 1.4rem; margin-left: 15px; }
 
-    .alert-bar.eew-warning { background-color: #ffd700; color: #000; }
+    .alert-bar.eew-warning { background-color: #ffd700; color: #000000; }
     .alert-bar.eew-alert {
       background-color: #d32f2f;
-      color: #fff;
+      color: #ffffff;
       animation: blink-red 1s infinite alternate;
     }
-    .alert-bar.seismic-info { background-color: #0055ff; color: #fff; }
-    .alert-bar.tsunami-info { background-color: #ff6600; color: #fff; }
+    .alert-bar.seismic-info { background-color: #0055ff; color: #ffffff; }
+    .alert-bar.tsunami-info { background-color: #ff6600; color: #ffffff; }
 
     @keyframes blink-red {
       0% { background-color: #d32f2f; }
-      100% { background-color: #990000; }
+      100% { background-color: #880000; }
     }
 
     /* ==========================================
-       高機能メガ・サイドメニュー
+       超高機能メガ・サイドメニュー
        ========================================== */
     .menu-toggle-btn {
       position: absolute;
       top: 12px;
       left: 15px;
       background: rgba(255, 255, 255, 0.2);
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.4);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.5);
       padding: 6px 14px;
       font-size: 0.95rem;
       font-weight: bold;
       border-radius: 4px;
       cursor: pointer;
       z-index: 1000;
-      transition: background 0.2s;
     }
     .menu-toggle-btn:hover { background: rgba(255, 255, 255, 0.4); }
 
     .side-menu {
       position: absolute;
       top: 0;
-      left: -380px;
-      width: 350px;
+      left: -400px;
+      width: 380px;
       height: 100%;
-      background: rgba(10, 15, 25, 0.98);
+      background: rgba(8, 12, 20, 0.98);
       border-right: 2px solid #0052cc;
       z-index: 1001;
       padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 15px;
       transition: left 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
-      box-shadow: 10px 0 25px rgba(0,0,0,0.8);
+      box-shadow: 10px 0 30px rgba(0,0,0,0.9);
       overflow-y: auto;
     }
     .side-menu.open { left: 0; }
@@ -104,28 +123,20 @@
       padding-bottom: 10px;
     }
     .menu-title { font-size: 1.2rem; font-weight: bold; color: #38bdf8; }
-    .close-btn {
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 1.6rem;
-      cursor: pointer;
-    }
+    .close-btn { background: none; border: none; color: #fff; font-size: 1.8rem; cursor: pointer; }
 
     .menu-section-title {
       font-size: 0.8rem;
       color: #94a3b8;
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-top: 5px;
       border-left: 3px solid #38bdf8;
       padding-left: 8px;
+      margin-top: 5px;
     }
-    .menu-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-    }
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .menu-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+    
     .menu-btn {
       background: #1e293b;
       color: #e2e8f0;
@@ -134,9 +145,8 @@
       text-align: left;
       border-radius: 4px;
       cursor: pointer;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: bold;
-      transition: all 0.15s;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -148,14 +158,18 @@
        メイン画面 & カラーテーマ
        ========================================== */
     .header {
-      background-color: #000;
-      padding: 0.8rem 2.5rem 0.8rem 7rem;
+      background-color: #000000;
+      padding: 0.8rem 2.5rem 0.8rem 7.5rem;
       display: flex;
       align-items: baseline;
       gap: 15px;
     }
-    .header-title-jp { font-size: 2.8rem; font-weight: bold; letter-spacing: 2px; }
-    .header-title-en { font-size: 1.6rem; font-weight: bold; color: #e2e8f0; }
+    .header-title-jp { font-size: 2.8rem; font-weight: bold; letter-spacing: 2px; color: #ffffff; }
+    .header-title-en { font-size: 1.6rem; font-weight: bold; color: #cbd5e1; }
+
+    .header-title-jp.neon {
+      text-shadow: 0 0 10px #38bdf8, 0 0 20px #38bdf8;
+    }
 
     .main-body {
       flex: 1;
@@ -166,7 +180,7 @@
       grid-template-rows: auto auto 1fr;
       gap: 15px 20px;
       align-items: center;
-      transition: background-color 0.3s;
+      transition: background-color 0.3s ease;
     }
 
     /* テーマ定義 */
@@ -179,7 +193,7 @@
     .theme-alert { background-color: #7f1d1d !important; }
 
     .label-box { display: flex; flex-direction: column; }
-    .label-jp { font-size: 2.2rem; font-weight: bold; line-height: 1.1; }
+    .label-jp { font-size: 2.2rem; font-weight: bold; line-height: 1.1; color: #ffffff; }
     .label-en { font-size: 1.2rem; color: #cbd5e1; }
 
     .current-value-panel {
@@ -188,7 +202,6 @@
       border-radius: 4px;
       padding: 0.2rem 1.5rem;
       text-align: right;
-      transition: background-color 0.1s ease, color 0.1s ease;
     }
     .time-text {
       font-size: 5.5rem;
@@ -198,10 +211,9 @@
       letter-spacing: -2px;
     }
 
-    /* フラッシュ時 */
+    /* 点滅時 */
     .current-value-panel.flash-active {
       background-color: #ffffff !important;
-      border: 4px solid #002b80;
     }
     .current-value-panel.flash-active .time-text {
       color: #00247d !important;
@@ -246,54 +258,75 @@
 </head>
 <body>
 
-  <div class="screen-container">
-    <!-- メニュー開閉ボタン -->
-    <button class="menu-toggle-btn" onclick="toggleMenu()">☰ メニュー・機能拡張</button>
+  <div class="scanlines" id="scanlines"></div>
 
-    <!-- 高機能メガ・サイドメニュー -->
+  <div class="screen-container" id="screen-container">
+    <!-- メニューボタン -->
+    <button class="menu-toggle-btn" onclick="toggleMenu()">☰ システム設定 & モード拡張</button>
+
+    <!-- サイドパネル -->
     <div class="side-menu" id="side-menu">
       <div class="menu-header">
-        <span class="menu-title">STUDIO SYSTEM MENU</span>
+        <span class="menu-title">STUDIO CONTROL PANEL</span>
         <button class="close-btn" onclick="toggleMenu()">×</button>
       </div>
 
-      <!-- 1. 表示モード切替 -->
-      <span class="menu-section-title">1. 表示モード選択 (全8種)</span>
+      <!-- 1. 表示モード選択 -->
+      <span class="menu-section-title">1. 市場・銘柄モード (全12種)</span>
       <div class="menu-grid">
         <button class="menu-btn active" onclick="setMode('nikkei', this)">日経平均株価</button>
         <button class="menu-btn" onclick="setMode('topix', this)">TOPIX</button>
         <button class="menu-btn" onclick="setMode('usdjpy', this)">ドル / 円</button>
         <button class="menu-btn" onclick="setMode('dow', this)">NYダウ</button>
         <button class="menu-btn" onclick="setMode('btc', this)">BTC / 円</button>
+        <button class="menu-btn" onclick="setMode('eth', this)">ETH / 円</button>
         <button class="menu-btn" onclick="setMode('nasdaq', this)">NASDAQ</button>
         <button class="menu-btn" onclick="setMode('sp500', this)">S&P 500</button>
         <button class="menu-btn" onclick="setMode('gold', this)">金先物 (Gold)</button>
+        <button class="menu-btn" onclick="setMode('oil', this)">原油 (WTI)</button>
+        <button class="menu-btn" onclick="setMode('jgb', this)">日本10年国債</button>
+        <button class="menu-btn" onclick="setMode('nkfutures', this)">日経225先物</button>
       </div>
 
       <!-- 2. テーマカラー切替 -->
-      <span class="menu-section-title">2. カラーテーマ (全8色)</span>
+      <span class="menu-section-title">2. テーマカラー (全8種)</span>
       <div class="menu-grid">
         <button class="menu-btn" onclick="setTheme('blue')">ANNブルー</button>
         <button class="menu-btn" onclick="setTheme('red')">ニュースRED</button>
         <button class="menu-btn" onclick="setTheme('dark')">ナイトブラック</button>
         <button class="menu-btn" onclick="setTheme('green')">サイバーグリーン</button>
-        <button class="menu-btn" onclick="setTheme('orange')">サンセット橙</button>
+        <button class="menu-btn" onclick="setTheme('orange')">サンセット</button>
         <button class="menu-btn" onclick="setTheme('matrix')">マトリックス</button>
         <button class="menu-btn" onclick="setTheme('retro')">昭和TVレトロ</button>
-        <button class="menu-btn" onclick="setTheme('alert')">警報レッド</button>
+        <button class="menu-btn" onclick="setTheme('alert')">警報モード</button>
       </div>
 
-      <!-- 3. 画面・パネルカスタム -->
-      <span class="menu-section-title">3. カスタマイズ・表示切り替え</span>
+      <!-- 3. 時計・タイムゾーン設定 -->
+      <span class="menu-section-title">3. タイムゾーン & 日付表示</span>
+      <div class="menu-grid">
+        <button class="menu-btn" onclick="setTimezone('JST', 'JST (UTC+9)')">JST (東京)</button>
+        <button class="menu-btn" onclick="setTimezone('UTC', 'UTC (+0)')">UTC (協定時)</button>
+        <button class="menu-btn" onclick="setTimezone('EST', 'EST (NY)')">EST (NY)</button>
+        <button class="menu-btn" onclick="setTimezone('GMT', 'GMT (ロンドン)')">GMT (ロンドン)</button>
+      </div>
+      <div class="menu-grid">
+        <button class="menu-btn" id="date-fmt-btn" onclick="rotateDateFormat()">日付形式: YYYY.MM.DD</button>
+        <button class="menu-btn" id="format-toggle-btn" onclick="toggleTimeFormat()">24時間制</button>
+      </div>
+
+      <!-- 4. 表示カスタマイズ -->
+      <span class="menu-section-title">4. 表示・演出オプション</span>
       <div class="menu-grid">
         <button class="menu-btn" id="sec-toggle-btn" onclick="toggleSeconds()">秒表示: ON</button>
-        <button class="menu-btn" id="format-toggle-btn" onclick="toggleTimeFormat()">24時間制</button>
         <button class="menu-btn" id="change-panel-btn" onclick="toggleChangePanel()">前日比: 表示</button>
         <button class="menu-btn" id="flash-toggle-btn" onclick="toggleFlashSetting()">白点滅: ON</button>
+        <button class="menu-btn" id="neon-toggle-btn" onclick="toggleNeon()">ネオン光: OFF</button>
+        <button class="menu-btn" id="scanline-toggle-btn" onclick="toggleScanlines()">CRT走査線: OFF</button>
+        <button class="menu-btn" id="layout-toggle-btn" onclick="toggleVerticalLayout()">縦型表示: OFF</button>
       </div>
 
-      <!-- 4. フォントカスタマイズ -->
-      <span class="menu-section-title">4. 数字フォントスタイル</span>
+      <!-- 5. フォント切替 -->
+      <span class="menu-section-title">5. 数字フォント</span>
       <div class="menu-grid">
         <button class="menu-btn" onclick="setFont('Courier New, monospace')">デジタル (等幅)</button>
         <button class="menu-btn" onclick="setFont('sans-serif')">ゴシック体</button>
@@ -301,15 +334,15 @@
         <button class="menu-btn" onclick="setFont('Arial Black, sans-serif')">極太インパクト</button>
       </div>
 
-      <!-- 5. サウンド設定 -->
-      <span class="menu-section-title">5. サウンド・効果音</span>
+      <!-- 6. サウンド効果 -->
+      <span class="menu-section-title">6. 効果音</span>
       <div class="menu-grid">
         <button class="menu-btn" id="sound-time-btn" onclick="toggleTimeSound()">時報(ポーン): OFF</button>
         <button class="menu-btn" id="sound-flash-btn" onclick="toggleFlashSound()">更新効果音: OFF</button>
       </div>
 
-      <!-- 6. テロップ動作確認テスト -->
-      <span class="menu-section-title">6. 防災テロップ動作テスト</span>
+      <!-- 7. テロップ手動テスト -->
+      <span class="menu-section-title">7. テロップ動作テスト</span>
       <div class="menu-grid">
         <button class="menu-btn" onclick="testEEW(3)">【EEW予報】黄</button>
         <button class="menu-btn" onclick="testEEW(5)">【EEW警報】赤</button>
@@ -317,15 +350,15 @@
         <button class="menu-btn" onclick="testTsunami()">【津波情報】橙</button>
       </div>
 
-      <!-- 7. システム操作 -->
-      <span class="menu-section-title">7. システム</span>
+      <!-- 8. システム -->
+      <span class="menu-section-title">8. システム操作</span>
       <div class="menu-grid">
-        <button class="menu-btn" onclick="toggleFullScreen()">全画面 (F11)</button>
-        <button class="menu-btn" onclick="location.reload()">画面リセット</button>
+        <button class="menu-btn" onclick="toggleFullScreen()">全画面表示 (F11)</button>
+        <button class="menu-btn" onclick="location.reload()">再読み込み</button>
       </div>
     </div>
 
-    <!-- 防災情報テロップ -->
+    <!-- 防災テロップ -->
     <div class="alert-bar" id="alert-bar">
       <span class="alert-title" id="alert-title">【緊急地震速報】</span>
       <span class="alert-text" id="alert-text">---</span>
@@ -393,22 +426,32 @@
     let showChange = true;
     let soundTime = false;
     let soundFlash = false;
+    let isNeon = false;
+    let isScanlines = false;
+    let isVertical = false;
     let alertTimer = null;
     let currentMode = 'nikkei';
+    let tzOffset = 0; // JST基準
+    let tzName = "JST (UTC+9)";
+    let dateFormatIndex = 0; // 0: YYYY.MM.DD, 1: YYYY年MM月DD日, 2: MM/DD/YYYY
 
-    // モード定義
+    // 銘柄データ
     const modeConfigs = {
-      nikkei: { jp: "日経平均株価", en: "Nikkei 225", prefix: "+" },
-      topix:  { jp: "TOPIX", en: "Tokyo Stock Price Index", prefix: "+" },
-      usdjpy: { jp: "外国為替", en: "USD / JPY", prefix: "¥" },
-      dow:    { jp: "NYダウ", en: "Dow Jones Industrial Average", prefix: "+" },
-      btc:    { jp: "ビットコイン", en: "Bitcoin / JPY", prefix: "₿" },
-      nasdaq: { jp: "NASDAQ", en: "NASDAQ Composite", prefix: "+" },
-      sp500:  { jp: "S&P 500", en: "S&P 500 Index", prefix: "+" },
-      gold:   { jp: "金先物", en: "Gold Futures", prefix: "$" }
+      nikkei:    { jp: "日経平均株価", en: "Nikkei 225", prefix: "+" },
+      topix:     { jp: "TOPIX", en: "Tokyo Stock Price Index", prefix: "+" },
+      usdjpy:    { jp: "外国為替", en: "USD / JPY", prefix: "¥" },
+      dow:       { jp: "NYダウ", en: "Dow Jones Industrial", prefix: "+" },
+      btc:       { jp: "ビットコイン", en: "Bitcoin / JPY", prefix: "₿" },
+      eth:       { jp: "イーサリアム", en: "Ethereum / JPY", prefix: "Ξ" },
+      nasdaq:    { jp: "NASDAQ", en: "NASDAQ Composite", prefix: "+" },
+      sp500:     { jp: "S&P 500", en: "S&P 500 Index", prefix: "+" },
+      gold:      { jp: "金先物", en: "Gold Futures", prefix: "$" },
+      oil:       { jp: "原油先物", en: "WTI Crude Oil", prefix: "$" },
+      jgb:       { jp: "日本10年国債", en: "JGB 10Y Yield", prefix: "%" },
+      nkfutures: { jp: "日経225先物", en: "Nikkei 225 Futures", prefix: "+" }
     };
 
-    // 音声コンテキスト (Web Audio API)
+    // Web Audio API
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playBeep(freq, duration) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -424,61 +467,54 @@
       osc.stop(audioCtx.currentTime + duration);
     }
 
-    // ==========================================
-    // 時計 ＆ メイン表示更新
-    // ==========================================
+    // 時計更新メイン関数
     function updateClock() {
       const now = new Date();
-      let hours = now.getHours();
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const seconds = String(now.getSeconds()).padStart(2, '0');
+      // タイムゾーン計算
+      const targetTime = new Date(now.getTime() + tzOffset * 3600 * 1000);
 
-      // 12h / 24h 変換
-      if (!is24Hour) {
-        hours = hours % 12 || 12;
-      }
+      let hours = targetTime.getHours();
+      const minutes = String(targetTime.getMinutes()).padStart(2, '0');
+      const seconds = String(targetTime.getSeconds()).padStart(2, '0');
+
+      if (!is24Hour) { hours = hours % 12 || 12; }
       hours = String(hours).padStart(2, '0');
 
-      // 秒表示切替
       let timeStr = `${hours}:${minutes}`;
       if (showSeconds) timeStr += `:${seconds}`;
 
       document.getElementById('clock-display').innerText = timeStr;
-      
-      // 前日比動的微変動
+
+      // 前日比ダイナミック生成
       const config = modeConfigs[currentMode];
       const mockChange = (Math.sin(now.getTime() / 1000) * 12 + 105).toFixed(2);
       document.getElementById('date-display').innerText = `${config.prefix}${mockChange}`;
 
-      // 日付・曜日
-      const year  = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const date  = String(now.getDate()).padStart(2, '0');
+      // 日付フォーマット
+      const year  = targetTime.getFullYear();
+      const month = String(targetTime.getMonth() + 1).padStart(2, '0');
+      const date  = String(targetTime.getDate()).padStart(2, '0');
       const weekdays = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
 
-      document.getElementById('open-display').innerText = `${year}.${month}.${date}`;
-      document.getElementById('high-display').innerText = weekdays[now.getDay()];
-      document.getElementById('low-display').innerText = "JST (UTC+9)";
+      let dateStr = `${year}.${month}.${date}`;
+      if (dateFormatIndex === 1) dateStr = `${year}年${month}月${date}日`;
+      if (dateFormatIndex === 2) dateStr = `${month}/${date}/${year}`;
 
-      // 時報サウンド (毎分0秒)
-      if (soundTime && now.getSeconds() === 0) {
-        playBeep(880, 0.8);
-      }
+      document.getElementById('open-display').innerText = dateStr;
+      document.getElementById('high-display').innerText = weekdays[targetTime.getDay()];
+      document.getElementById('low-display').innerText = tzName;
+
+      if (soundTime && now.getSeconds() === 0) playBeep(880, 0.8);
     }
 
-    // ==========================================
-    // メニュー & スイッチ関数群
-    // ==========================================
-    function toggleMenu() {
-      document.getElementById('side-menu').classList.toggle('open');
-    }
+    // スイッチ＆メニュー操作
+    function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); }
 
     function setMode(mode, btnEl) {
       currentMode = mode;
       const config = modeConfigs[mode];
       document.getElementById('title-jp').innerText = config.jp;
       document.getElementById('title-en').innerText = config.en;
-
       if (btnEl) {
         btnEl.parentElement.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
         btnEl.classList.add('active');
@@ -490,6 +526,22 @@
       const mainBody = document.getElementById('main-body');
       mainBody.className = "main-body";
       if (theme !== 'blue') mainBody.classList.add(`theme-${theme}`);
+    }
+
+    function setTimezone(zone, label) {
+      tzName = label;
+      if (zone === 'JST') tzOffset = 0;
+      if (zone === 'UTC') tzOffset = -9;
+      if (zone === 'EST') tzOffset = -14;
+      if (zone === 'GMT') tzOffset = -9;
+      updateClock();
+    }
+
+    function rotateDateFormat() {
+      dateFormatIndex = (dateFormatIndex + 1) % 3;
+      const labels = ["YYYY.MM.DD", "YYYY年MM月DD日", "MM/DD/YYYY"];
+      document.getElementById('date-fmt-btn').innerText = `日付形式: ${labels[dateFormatIndex]}`;
+      updateClock();
     }
 
     function toggleSeconds() {
@@ -511,9 +563,26 @@
       document.getElementById('change-panel-btn').innerText = `前日比: ${showChange ? '表示' : '非表示'}`;
     }
 
+    function toggleNeon() {
+      isNeon = !isNeon;
+      document.getElementById('title-jp').classList.toggle('neon', isNeon);
+      document.getElementById('neon-toggle-btn').innerText = `ネオン光: ${isNeon ? 'ON' : 'OFF'}`;
+    }
+
+    function toggleScanlines() {
+      isScanlines = !isScanlines;
+      document.getElementById('scanlines').style.display = isScanlines ? 'block' : 'none';
+      document.getElementById('scanline-toggle-btn').innerText = `CRT走査線: ${isScanlines ? 'ON' : 'OFF'}`;
+    }
+
+    function toggleVerticalLayout() {
+      isVertical = !isVertical;
+      document.getElementById('screen-container').classList.toggle('layout-vertical', isVertical);
+      document.getElementById('layout-toggle-btn').innerText = `縦型表示: ${isVertical ? 'ON' : 'OFF'}`;
+    }
+
     function setFont(fontFamily) {
-      const targets = document.querySelectorAll('.time-text, .change-text, .detail-value');
-      targets.forEach(el => el.style.fontFamily = fontFamily);
+      document.querySelectorAll('.time-text, .change-text, .detail-value').forEach(el => el.style.fontFamily = fontFamily);
     }
 
     function toggleFlashSetting() {
@@ -534,47 +603,37 @@
     function toggleFullScreen() {
       if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen();
-      } else {
-        if (document.exitFullscreen) document.exitFullscreen();
+      } else if (document.exitFullscreen) {
+        document.exitFullscreen();
       }
     }
 
-    // ==========================================
-    // 点滅演出
-    // ==========================================
+    // ランダムフラッシュ
     function checkRandomFlash() {
       if (!allowFlash || isFlashing) return;
-
       if (Math.random() < 0.3) {
         isFlashing = true;
         const panel = document.getElementById('current-panel');
         panel.classList.add('flash-active');
-
         if (soundFlash) playBeep(1200, 0.05);
 
-        const flashDuration = Math.floor(Math.random() * 500) + 500;
         setTimeout(() => {
           panel.classList.remove('flash-active');
           isFlashing = false;
-        }, flashDuration);
+        }, Math.floor(Math.random() * 500) + 500);
       }
     }
 
-    // ==========================================
-    // 防災情報テロップ ＆ テスト機能
-    // ==========================================
+    // テロップ表示
     function showAlert(title, text, styleClass) {
       const bar = document.getElementById('alert-bar');
       document.getElementById('alert-title').innerText = title;
       document.getElementById('alert-text').innerText = text;
-
       bar.className = "alert-bar " + styleClass;
       bar.style.display = "block";
 
       if (alertTimer) clearTimeout(alertTimer);
-      alertTimer = setTimeout(() => {
-        bar.style.display = "none";
-      }, 50000);
+      alertTimer = setTimeout(() => { bar.style.display = "none"; }, 50000);
     }
 
     function testEEW(scale) {
@@ -584,12 +643,8 @@
         showAlert("【緊急地震速報（警報）】", "茨城県沖で地震 予想最大震度：5弱 強い揺れに警戒", "eew-alert");
       }
     }
-    function testShindo() {
-      showAlert("【震度情報】", "最大震度4を観測した地震が発生しました（震源：日向灘）", "seismic-info");
-    }
-    function testTsunami() {
-      showAlert("【津波注意報】", "太平洋沿岸に津波注意報が発表されました 海岸から離れてください", "tsunami-info");
-    }
+    function testShindo() { showAlert("【震度情報】", "最大震度4を観測した地震が発生しました（震源：日向灘）", "seismic-info"); }
+    function testTsunami() { showAlert("【津波注意報】", "太平洋沿岸に津波注意報が発表されました", "tsunami-info"); }
 
     // リアルタイム防災API
     async function checkRealDisasterAPI() {
@@ -597,27 +652,25 @@
         const res = await fetch('https://api.p2pquake.net/v2/history?codes=551,552,554&limit=1');
         const data = await res.json();
         if (!data || data.length === 0) return;
-
         const info = data[0];
+
         if (info.code === 551 && info.earthquake && info.earthquake.hypocenter) {
           const area = info.earthquake.hypocenter.name || "不明";
           const maxScaleNum = info.earthquake.maxScale ? (info.earthquake.maxScale / 10) : 0;
           if (maxScaleNum >= 4.5) {
-            showAlert("【緊急地震速報（警報）】", `震源地：${area} / 予想最大震度：5弱以上 強い揺れに警戒`, "eew-alert");
+            showAlert("【緊急地震速報（警報）】", `震源地：${area} / 予想最大震度：5弱以上`, "eew-alert");
           } else {
             showAlert("【緊急地震速報（予報）】", `震源地：${area} / 予想最大震度：${maxScaleNum || '1〜4'}`, "eew-warning");
           }
         } else if (info.code === 552 && info.earthquake && info.earthquake.maxScale >= 30) {
           const area = info.earthquake.hypocenter.name || "各地";
-          const scaleStr = info.earthquake.maxScale / 10;
-          showAlert("【震度情報】", `最大震度${scaleStr}を観測（震源：${area}）`, "seismic-info");
+          showAlert("【震度情報】", `最大震度${info.earthquake.maxScale / 10}を観測（震源：${area}）`, "seismic-info");
         } else if (info.code === 554) {
           showAlert("【津波情報】", "海岸付近の方はただちに高台へ避難してください", "tsunami-info");
         }
       } catch (e) {}
     }
 
-    // 定期実行
     setInterval(updateClock, 1000);
     setInterval(checkRandomFlash, 1000);
     setInterval(checkRealDisasterAPI, 3000);
