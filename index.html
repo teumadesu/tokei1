@@ -2,8 +2,8 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>株式市場みたいな時計</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>株式市場みたいな時計 (スマホ・レスポンシブ対応版)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
@@ -44,24 +44,19 @@
       transition: all 0.3s ease;
     }
 
-    /* 縦型レイアウト対応 */
-    .screen-container.layout-vertical {
-      max-width: 450px;
-      max-height: 800px;
-    }
-
     /* ==========================================
        防災情報テロップ
        ========================================== */
     .alert-bar {
       display: none;
-      padding: 0.8rem 1.5rem;
+      padding: 0.6rem 1rem;
       font-weight: bold;
       border-bottom: 4px solid rgba(255, 255, 255, 0.4);
       z-index: 900;
+      word-break: break-all;
     }
-    .alert-title { font-size: 1.8rem; }
-    .alert-text { font-size: 1.4rem; margin-left: 15px; }
+    .alert-title { font-size: clamp(1rem, 3vw, 1.8rem); }
+    .alert-text { font-size: clamp(0.9rem, 2.5vw, 1.4rem); margin-left: 10px; }
 
     .alert-bar.eew-warning { background-color: #ffd700; color: #000000; }
     .alert-bar.eew-alert {
@@ -88,7 +83,7 @@
       color: #ffffff;
       border: 1px solid rgba(255, 255, 255, 0.5);
       padding: 6px 14px;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: bold;
       border-radius: 4px;
       cursor: pointer;
@@ -99,13 +94,13 @@
     .side-menu {
       position: absolute;
       top: 0;
-      left: -400px;
-      width: 380px;
+      left: -100%;
+      width: min(380px, 85vw);
       height: 100%;
       background: rgba(8, 12, 20, 0.98);
       border-right: 2px solid #0052cc;
       z-index: 1001;
-      padding: 20px;
+      padding: 20px 15px;
       display: flex;
       flex-direction: column;
       gap: 15px;
@@ -122,11 +117,11 @@
       border-bottom: 2px solid #334155;
       padding-bottom: 10px;
     }
-    .menu-title { font-size: 1.2rem; font-weight: bold; color: #38bdf8; }
+    .menu-title { font-size: 1.1rem; font-weight: bold; color: #38bdf8; }
     .close-btn { background: none; border: none; color: #fff; font-size: 1.8rem; cursor: pointer; }
 
     .menu-section-title {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: #94a3b8;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -135,17 +130,16 @@
       margin-top: 5px;
     }
     .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .menu-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
     
     .menu-btn {
       background: #1e293b;
       color: #e2e8f0;
       border: 1px solid #334155;
-      padding: 8px 10px;
-      text-align: left;
+      padding: 8px 6px;
+      text-align: center;
       border-radius: 4px;
       cursor: pointer;
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       font-weight: bold;
       white-space: nowrap;
       overflow: hidden;
@@ -159,13 +153,14 @@
        ========================================== */
     .header {
       background-color: #000000;
-      padding: 0.8rem 2.5rem 0.8rem 7.5rem;
+      padding: 0.8rem 1.5rem 0.8rem 6.5rem;
       display: flex;
       align-items: baseline;
-      gap: 15px;
+      gap: 12px;
+      overflow: hidden;
     }
-    .header-title-jp { font-size: 2.8rem; font-weight: bold; letter-spacing: 2px; color: #ffffff; }
-    .header-title-en { font-size: 1.6rem; font-weight: bold; color: #cbd5e1; }
+    .header-title-jp { font-size: clamp(1.4rem, 4vw, 2.8rem); font-weight: bold; letter-spacing: 2px; color: #ffffff; white-space: nowrap; }
+    .header-title-en { font-size: clamp(0.9rem, 2vw, 1.6rem); font-weight: bold; color: #cbd5e1; white-space: nowrap; }
 
     .header-title-jp.neon {
       text-shadow: 0 0 10px #38bdf8, 0 0 20px #38bdf8;
@@ -174,13 +169,14 @@
     .main-body {
       flex: 1;
       background-color: #0052cc;
-      padding: 1.5rem 2.5rem;
+      padding: 1rem 1.5rem;
       display: grid;
-      grid-template-columns: 280px 1fr;
+      grid-template-columns: minmax(100px, 240px) 1fr;
       grid-template-rows: auto auto 1fr;
-      gap: 15px 20px;
+      gap: 10px 15px;
       align-items: center;
       transition: background-color 0.3s ease;
+      overflow: hidden;
     }
 
     /* テーマ定義 */
@@ -192,23 +188,25 @@
     .theme-retro { background-color: #3f3f46 !important; }
     .theme-alert { background-color: #7f1d1d !important; }
 
-    .label-box { display: flex; flex-direction: column; }
-    .label-jp { font-size: 2.2rem; font-weight: bold; line-height: 1.1; color: #ffffff; }
-    .label-en { font-size: 1.2rem; color: #cbd5e1; }
+    .label-box { display: flex; flex-direction: column; justify-content: center; }
+    .label-jp { font-size: clamp(1.2rem, 3.2vw, 2.2rem); font-weight: bold; line-height: 1.1; color: #ffffff; }
+    .label-en { font-size: clamp(0.75rem, 1.8vw, 1.2rem); color: #cbd5e1; }
 
     .current-value-panel {
       background-color: #103380;
       border: 2px solid #002266;
       border-radius: 4px;
-      padding: 0.2rem 1.5rem;
+      padding: 0.2rem 1rem;
       text-align: right;
+      overflow: hidden;
     }
     .time-text {
-      font-size: 5.5rem;
+      font-size: clamp(2.2rem, 8vw, 5.5rem);
       font-weight: bold;
       color: #ffffff;
       font-family: 'Courier New', Courier, monospace;
-      letter-spacing: -2px;
+      letter-spacing: -1px;
+      white-space: nowrap;
     }
 
     /* 点滅時 */
@@ -223,37 +221,91 @@
       background-color: #ff3333;
       border: 2px solid #b30000;
       border-radius: 4px;
-      padding: 0.5rem 1.5rem;
+      padding: 0.4rem 1rem;
       text-align: right;
+      overflow: hidden;
     }
     .change-text {
-      font-size: 3.2rem;
+      font-size: clamp(1.5rem, 5vw, 3.2rem);
       font-weight: bold;
       color: #ffffff;
       font-family: 'Courier New', Courier, monospace;
+      white-space: nowrap;
     }
 
     .details-container {
       grid-column: 1 / 3;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       margin-top: 5px;
     }
     .detail-row {
       display: grid;
-      grid-template-columns: 280px 1fr;
+      grid-template-columns: minmax(100px, 240px) 1fr;
       align-items: center;
     }
     .detail-value {
-      font-size: 3rem;
+      font-size: clamp(1.4rem, 4.5vw, 3rem);
       font-weight: bold;
       text-align: right;
       font-family: 'Courier New', Courier, monospace;
       color: #ffffff;
+      white-space: nowrap;
     }
 
     .footer-line { height: 8px; background-color: #cc0000; }
+
+    /* ==========================================
+       スマホ最適化 & 縦型レイアウトモード (.layout-vertical)
+       ========================================== */
+    @media (max-width: 768px) {
+      .screen-container { max-width: 100vw; max-height: 100vh; }
+      .main-body {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(6, auto);
+        gap: 6px;
+        padding: 0.8rem 1rem;
+        overflow-y: auto;
+      }
+      .details-container { grid-column: 1 / 2; gap: 6px; }
+      .detail-row { grid-template-columns: 100px 1fr; }
+      .header { padding-left: 5.5rem; }
+    }
+
+    /* 手動縦型モードが有効化された時のバグ防止CSS */
+    .screen-container.layout-vertical {
+      max-width: 450px;
+      max-height: 100vh;
+      margin: 0 auto;
+    }
+    .screen-container.layout-vertical .header {
+      padding-left: 5.5rem;
+      flex-direction: column;
+      gap: 0;
+      align-items: flex-start;
+    }
+    .screen-container.layout-vertical .main-body {
+      grid-template-columns: 1fr;
+      grid-template-rows: repeat(6, auto);
+      gap: 6px;
+      padding: 0.8rem 1rem;
+    }
+    .screen-container.layout-vertical .details-container {
+      grid-column: 1 / 2;
+    }
+    .screen-container.layout-vertical .detail-row {
+      grid-template-columns: 90px 1fr;
+    }
+    .screen-container.layout-vertical .time-text {
+      font-size: clamp(2rem, 10vw, 3.8rem);
+    }
+    .screen-container.layout-vertical .change-text {
+      font-size: clamp(1.5rem, 7vw, 2.5rem);
+    }
+    .screen-container.layout-vertical .detail-value {
+      font-size: clamp(1.2rem, 5vw, 2rem);
+    }
   </style>
 </head>
 <body>
