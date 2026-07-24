@@ -35,57 +35,32 @@
     }
 
     /* ==========================================
-       1. ヘッダー（黒領域 & 右上LIVEバッジ）
+       1. ヘッダー（黒領域）
        ========================================== */
     .header {
       background-color: #000;
-      padding: 0.8rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .header-title-container {
+      padding: 0.8rem 2.5rem;
       display: flex;
       align-items: baseline;
       gap: 15px;
     }
     .header-title-jp {
-      font-size: 2.5rem;
+      font-size: 2.8rem;
       font-weight: bold;
       letter-spacing: 2px;
     }
     .header-title-en {
-      font-size: 1.5rem;
+      font-size: 1.6rem;
       font-weight: bold;
       color: #e2e8f0;
     }
 
-    /* 右上のLIVEバッジ (image_1.jpgを再現) */
-    .live-badge {
-      display: flex;
-      border: 1px solid #fff;
-      font-size: 0.9rem;
-      font-weight: bold;
-    }
-    .live-left {
-      background-color: #800080; /* 紫背景 */
-      color: #fff;
-      padding: 4px 8px;
-    }
-    .live-right {
-      background-color: #008000; /* 緑背景 */
-      color: #fff;
-      padding: 4px 10px;
-      text-align: center;
-      line-height: 1.1;
-    }
-
     /* ==========================================
-       2. メインボディ（鮮やかな青領域）
+       2. メインボディ（青領域）
        ========================================== */
     .main-body {
       flex: 1;
-      background-color: #0052cc; /* 画像に近い鮮やかなブルー */
+      background-color: #0052cc;
       padding: 1.5rem 2.5rem;
       display: grid;
       grid-template-columns: 280px 1fr;
@@ -109,32 +84,37 @@
       color: #cbd5e1;
     }
 
-    /* --- 2a. 現在値（16:11:05）パネル --- */
+    /* --- 2a. 現在値パネル ---
+       通常時（image_2.jpg）：濃い青背景 ＋ 白文字
+    ------------------------------------------- */
     .current-value-panel {
-      background-color: #e6f0fa; /* 薄い青白色（平常時） */
-      border: 4px solid #002b80;
+      background-color: #103380; /* 通常時の濃い青 */
+      border: 2px solid #002266;
       border-radius: 4px;
       padding: 0.2rem 1.5rem;
       text-align: right;
-      transition: background-color 1s ease, color 1s ease; /* じんわり戻るアニメーション */
+      transition: background-color 0.1s ease, color 0.1s ease;
     }
     .time-text {
       font-size: 5.5rem;
       font-weight: bold;
-      color: #00247d; /* 深い青 */
+      color: #ffffff; /* 通常時は白文字 */
       font-family: 'Courier New', Courier, monospace;
       letter-spacing: -2px;
     }
 
-    /* 毎分00秒で発火するフラッシュ用クラス（画像のように真っ白に） */
-    .flash-active {
-      background-color: #ffffff !important;
-      box-shadow: 0 0 25px rgba(255, 255, 255, 0.9);
+    /* --- フラッシュ時（image_3.jpg）：白背景 ＋ 青文字 --- */
+    .current-value-panel.flash-active {
+      background-color: #ffffff !important; /* 白背景 */
+      border: 4px solid #002b80;
+    }
+    .current-value-panel.flash-active .time-text {
+      color: #00247d !important; /* 青文字 */
     }
 
     /* --- 2b. 前日比（赤いパネル） --- */
     .change-value-panel {
-      background-color: #ff3333; /* 鮮やかな赤 */
+      background-color: #ff3333;
       border: 2px solid #b30000;
       border-radius: 4px;
       padding: 0.5rem 1.5rem;
@@ -147,7 +127,7 @@
       font-family: 'Courier New', Courier, monospace;
     }
 
-    /* --- 2c. 始値・高値・安値（詳細情報リスト） --- */
+    /* --- 2c. 詳細情報リスト --- */
     .details-container {
       grid-column: 1 / 3;
       display: flex;
@@ -178,22 +158,16 @@
 <body>
 
   <div class="screen-container">
-    <!-- ヘッダー -->
+    <!-- 1. ヘッダー -->
     <div class="header">
-      <div class="header-title-container">
-        <span class="header-title-jp">日経平均株価</span>
-        <span class="header-title-en">Nikkei 225</span>
-      </div>
-      <div class="live-badge">
-        <div class="live-left">LIVE</div>
-        <div class="live-right">東京証券取引所<br>寄りつき</div>
-      </div>
+      <span class="header-title-jp">日経平均株価</span>
+      <span class="header-title-en">Nikkei 225</span>
     </div>
 
-    <!-- メイン画面（画像再現） -->
+    <!-- 2. メイン画面 -->
     <div class="main-body">
       
-      <!-- 現在値（時刻＋秒数） -->
+      <!-- 現在値（時刻） -->
       <div class="label-box">
         <span class="label-jp">現在値</span>
         <span class="label-en">Current</span>
@@ -245,6 +219,8 @@
   </div>
 
   <script>
+    let isFlashing = false; // 点滅中かどうかのフラグ
+
     function updateClock() {
       const now = new Date();
       
@@ -252,27 +228,13 @@
       const minutes = String(now.getMinutes()).padStart(2, '0');
       const seconds = String(now.getSeconds()).padStart(2, '0');
 
-      const panel = document.getElementById('current-panel');
       const clockDisplay = document.getElementById('clock-display');
-
-      // 1. 時:分:秒 を表示
       clockDisplay.innerText = `${hours}:${minutes}:${seconds}`;
-
-      // 2. 毎分 00 秒になった瞬間に白くフラッシュさせる（1分おきの変化演出）
-      if (seconds === '00') {
-        panel.classList.add('flash-active');
-        
-        // 1.5秒後に元に戻す
-        setTimeout(() => {
-          panel.classList.remove('flash-active');
-        }, 1500);
-      }
 
       // 日付等の設定
       const year  = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const date  = String(now.getDate()).padStart(2, '0');
-      
       const weekdays = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
       
       document.getElementById('date-display').innerText = `+${month}.${date}`;
@@ -280,9 +242,43 @@
       document.getElementById('high-display').innerText = weekdays[now.getDay()];
     }
 
-    // 1秒ごとに実行
+    // ==========================================
+    // 10秒間に約3回の確率でランダム点滅させる制御
+    // ==========================================
+    function checkRandomFlash() {
+      // すでに点滅中なら二重に発火させない
+      if (isFlashing) return;
+
+      // 1秒間に30%の確率（10秒で平均3回発生）
+      const chance = Math.random();
+      if (chance < 0.3) {
+        triggerFlash();
+      }
+    }
+
+    function triggerFlash() {
+      isFlashing = true;
+      const panel = document.getElementById('current-panel');
+
+      // 白背景＋青文字にするクラスを付与
+      panel.classList.add('flash-active');
+
+      // 0.5秒〜1.0秒（500ms〜1000ms）のランダムな時間を計算
+      const flashDuration = Math.floor(Math.random() * 500) + 500;
+
+      // 指定時間後に元のデザインに戻す
+      setTimeout(() => {
+        panel.classList.remove('flash-active');
+        isFlashing = false;
+      }, flashDuration);
+    }
+
+    // 時計の更新（1秒ごと）
     setInterval(updateClock, 1000);
     updateClock();
+
+    // ランダム点滅の判定（1秒ごと）
+    setInterval(checkRandomFlash, 1000);
   </script>
 </body>
 </html>
