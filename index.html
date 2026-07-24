@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>日経平均株価風 デジタルクロック & リアルタイム情報</title>
+  <title>日経平均株価風 デジタルクロック & リアルタイムニュース</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -29,23 +29,46 @@
       position: relative;
     }
 
-    /* 地震速報用テロップ */
-    .eew-alert-bar {
+    /* ==========================================
+       防災情報テロップ（色を動的に変更）
+       ========================================== */
+    .alert-bar {
       display: none;
-      background-color: #d32f2f;
-      color: #fff;
       padding: 0.8rem 1.5rem;
       font-weight: bold;
-      border-bottom: 4px solid #ffeb3b;
-      animation: blink-bg 1s infinite alternate;
+      border-bottom: 4px solid rgba(255, 255, 255, 0.4);
       z-index: 999;
+      transition: background-color 0.3s, color 0.3s;
     }
-    .eew-title { font-size: 1.8rem; color: #ffeb3b; }
-    .eew-text { font-size: 1.4rem; margin-left: 15px; }
+    .alert-title { font-size: 1.8rem; }
+    .alert-text { font-size: 1.4rem; margin-left: 15px; }
 
-    @keyframes blink-bg {
+    /* 各種カラー設定 */
+    /* 1. EEW 予報 (震度1〜4)：黄色 */
+    .alert-bar.eew-warning {
+      background-color: #ffd700;
+      color: #000;
+    }
+    /* 2. EEW 警報 (震度5弱〜7)：赤色 */
+    .alert-bar.eew-alert {
+      background-color: #d32f2f;
+      color: #fff;
+      animation: blink-red 1s infinite alternate;
+    }
+    /* 3. 震度情報 (震度3以上)：青色 */
+    .alert-bar.seismic-info {
+      background-color: #0055ff;
+      color: #fff;
+    }
+    /* 4. 津波情報：オレンジ色 */
+    .alert-bar.tsunami-info {
+      background-color: #ff6600;
+      color: #fff;
+    }
+
+    @keyframes blink-red {
       0% { background-color: #d32f2f; }
-      100% { background-color: #b71c1c; }
+      100% { background-color: #990000; }
     }
 
     /* モード切り替え通知 */
@@ -62,22 +85,26 @@
       z-index: 100;
     }
 
-    /* 訓練用テストボタン（画面右下に配置） */
-    .test-btn {
+    /* 訓練用テストボタンパネル（画面右下） */
+    .test-panel {
       position: absolute;
-      bottom: 15px;
-      right: 15px;
-      background: #333;
-      color: #fff;
-      border: 1px solid #666;
-      padding: 5px 10px;
-      font-size: 0.8rem;
-      cursor: pointer;
+      bottom: 12px;
+      right: 12px;
+      display: flex;
+      gap: 5px;
       z-index: 1000;
-      border-radius: 3px;
-      opacity: 0.6;
     }
-    .test-btn:hover { opacity: 1; background: #555; }
+    .test-btn {
+      background: #222;
+      color: #ccc;
+      border: 1px solid #555;
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      border-radius: 3px;
+      opacity: 0.5;
+    }
+    .test-btn:hover { opacity: 1; background: #444; color: #fff; }
 
     /* ヘッダー */
     .header {
@@ -123,7 +150,6 @@
       letter-spacing: -2px;
     }
 
-    /* 白フラッシュ時 */
     .current-value-panel.flash-active {
       background-color: #ffffff !important;
       border: 4px solid #002b80;
@@ -168,7 +194,6 @@
       color: #ffffff;
     }
 
-    /* 安値エリアをクリック可能にする設定 */
     #low-trigger-row {
       cursor: pointer;
       user-select: none;
@@ -180,10 +205,10 @@
 <body>
 
   <div class="screen-container">
-    <!-- 地震速報エリア -->
-    <div class="eew-alert-bar" id="eew-bar">
-      <span class="eew-title">【緊急地震速報】</span>
-      <span class="eew-text" id="eew-text">震源地：○○県沖 最大予測震度：5弱</span>
+    <!-- 防災情報テロップエリア -->
+    <div class="alert-bar" id="alert-bar">
+      <span class="alert-title" id="alert-title">【緊急地震速報】</span>
+      <span class="alert-text" id="alert-text">情報を受信中...</span>
     </div>
 
     <!-- モード切り替え通知 -->
@@ -233,7 +258,6 @@
           <div class="detail-value" id="high-display">FRIDAY</div>
         </div>
 
-        <!-- 安値（タップでモード切替） -->
         <div class="detail-row" id="low-trigger-row" onclick="toggleStockMode()">
           <div class="label-box">
             <span class="label-jp">安値</span>
@@ -246,14 +270,19 @@
 
     <div class="footer-line"></div>
 
-    <!-- 訓練用テストボタン -->
-    <button class="test-btn" onclick="runEEWTest()">[訓練] EEWテスト</button>
+    <!-- 各種動作確認用ボタン -->
+    <div class="test-panel">
+      <button class="test-btn" onclick="testEEW(3)">[テスト] EEW黄(震度3)</button>
+      <button class="test-btn" onclick="testEEW(5)">[テスト] EEW赤(震度5弱)</button>
+      <button class="test-btn" onclick="testShindo()">[テスト] 震度青(震度4)</button>
+      <button class="test-btn" onclick="testTsunami()">[テスト] 津波橙</button>
+    </div>
   </div>
 
   <script>
     let isFlashing = false;
     let isRealStockMode = false;
-    let eewTimer = null;
+    let alertTimer = null;
 
     let realData = { price: "---", change: "---", open: "---", high: "---", low: "---" };
 
@@ -272,10 +301,8 @@
       const weekdays = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
 
       if (!isRealStockMode) {
-        // 時計モード
         document.getElementById('clock-display').innerText = `${hours}:${minutes}:${seconds}`;
         
-        // 前日比をリアルタイムでわずかに動かす
         const mockChange = (Math.sin(now.getTime() / 1000) * 15 + 120).toFixed(2);
         document.getElementById('date-display').innerText = `+${mockChange}`;
 
@@ -283,7 +310,6 @@
         document.getElementById('high-display').innerText = weekdays[now.getDay()];
         document.getElementById('low-display').innerText = "JST (UTC+9)";
       } else {
-        // 本物株価モード
         document.getElementById('clock-display').innerText = realData.price;
         document.getElementById('date-display').innerText = realData.change;
         document.getElementById('open-display').innerText = realData.open;
@@ -311,7 +337,6 @@
         realData.high = meta.regularMarketDayHigh ? meta.regularMarketDayHigh.toFixed(2) : "39010.22";
         realData.low = meta.regularMarketDayLow ? meta.regularMarketDayLow.toFixed(2) : "38650.00";
       } catch (err) {
-        // バックアップ用ダミー本物データ
         realData = { price: "38920.50", change: "+245.10", open: "38700.10", high: "39010.22", low: "38650.00" };
       }
     }
@@ -330,7 +355,6 @@
       updateDisplay();
     }
 
-    // 5秒後に「(タップで本物切替)」テキストを消す
     setTimeout(() => {
       document.getElementById('low-label-en').innerText = "Low";
     }, 5000);
@@ -346,7 +370,7 @@
         const panel = document.getElementById('current-panel');
         panel.classList.add('flash-active');
 
-        const flashDuration = Math.floor(Math.random() * 500) + 500; // 0.5〜1秒
+        const flashDuration = Math.floor(Math.random() * 500) + 500;
         setTimeout(() => {
           panel.classList.remove('flash-active');
           isFlashing = false;
@@ -355,35 +379,75 @@
     }
 
     // ==========================================
-    // 4. 緊急地震速報（EEW）および訓練用テスト
+    // 4. テロップ表示・制御共通処理（50秒後消去）
     // ==========================================
-    function showEEWAlert(text) {
-      const bar = document.getElementById('eew-bar');
-      document.getElementById('eew-text').innerText = text;
+    function showAlert(title, text, styleClass) {
+      const bar = document.getElementById('alert-bar');
+      document.getElementById('alert-title').innerText = title;
+      document.getElementById('alert-text').innerText = text;
+
+      // クラスを一度リセットして目的のスタイルを設定
+      bar.className = "alert-bar " + styleClass;
       bar.style.display = "block";
 
-      // 既存のタイマーをリセットして、最終報から50秒（50000ミリ秒）後に消去
-      if (eewTimer) clearTimeout(eewTimer);
-      eewTimer = setTimeout(() => {
+      // 50秒後（50000ms）に自動削除
+      if (alertTimer) clearTimeout(alertTimer);
+      alertTimer = setTimeout(() => {
         bar.style.display = "none";
       }, 50000);
     }
 
-    // 訓練用テスト実行ボタンの処理
-    function runEEWTest() {
-      showEEWAlert("【訓練】千葉県東方沖で地震 予想最大震度：5弱 (50秒後に自動解除)");
+    // --- テスト用関数 ---
+    function testEEW(scale) {
+      if (scale < 5) {
+        showAlert("【緊急地震速報（予報）】", "千葉県沖で地震 予想最大震度：3", "eew-warning");
+      } else {
+        showAlert("【緊急地震速報（警報）】", "茨城県沖で地震 予想最大震度：5弱 強い揺れに警戒", "eew-alert");
+      }
     }
 
-    // 本物の地震APIチェック（3秒毎）
-    async function checkEEW() {
+    function testShindo() {
+      showAlert("【震度情報】", "最大震度4を観測した地震が発生しました（震源：日向灘）", "seismic-info");
+    }
+
+    function testTsunami() {
+      showAlert("【津波注意報】", "太平洋沿岸に津波注意報が発表されました 海海岸から離れてください", "tsunami-info");
+    }
+
+    // ==========================================
+    // 5. リアルタイム防災APIの自動受信・振り分け
+    // ==========================================
+    async function checkRealDisasterAPI() {
       try {
-        const res = await fetch('https://api.p2pquake.net/v2/history?codes=551&limit=1');
+        // P2P地震情報API
+        const res = await fetch('https://api.p2pquake.net/v2/history?codes=551,552,554&limit=1');
         const data = await res.json();
-        if (data && data.length > 0 && data[0].earthquake && data[0].earthquake.hypocenter) {
-          const eew = data[0];
-          const area = eew.earthquake.hypocenter.name || "不明";
-          const maxScale = eew.earthquake.maxScale ? (eew.earthquake.maxScale / 10) : "不明";
-          showEEWAlert(`震源地：${area} / 予測最大震度：${maxScale}`);
+        if (!data || data.length === 0) return;
+
+        const info = data[0];
+
+        // 1. 緊急地震速報 (code 551)
+        if (info.code === 551 && info.earthquake && info.earthquake.hypocenter) {
+          const area = info.earthquake.hypocenter.name || "不明";
+          const maxScaleNum = info.earthquake.maxScale ? (info.earthquake.maxScale / 10) : 0;
+          
+          if (maxScaleNum >= 4.5) { // 5弱以上 ➔ 警報（赤）
+            showAlert("【緊急地震速報（警報）】", `震源地：${area} / 予想最大震度：5弱以上`, "eew-alert");
+          } else { // 1〜4 ➔ 予報（黄）
+            showAlert("【緊急地震速報（予報）】", `震源地：${area} / 予想最大震度：${maxScaleNum || '1〜4'}`, "eew-warning");
+          }
+        }
+        
+        // 2. 震度情報 (code 552 / 震度3以上)
+        else if (info.code === 552 && info.earthquake && info.earthquake.maxScale >= 30) {
+          const area = info.earthquake.hypocenter.name || "各地";
+          const scaleStr = info.earthquake.maxScale / 10;
+          showAlert("【震度情報】", `最大震度${scaleStr}を観測（震源：${area}）`, "seismic-info");
+        }
+
+        // 3. 津波情報 (code 554)
+        else if (info.code === 554) {
+          showAlert("【津波情報】", "海岸付近の方はただちに高台へ避難してください", "tsunami-info");
         }
       } catch (e) {}
     }
@@ -391,10 +455,9 @@
     // 定期実行処理
     setInterval(updateDisplay, 1000);
     setInterval(checkRandomFlash, 1000);
-    setInterval(checkEEW, 3000);
+    setInterval(checkRealDisasterAPI, 3000);
     setInterval(fetchRealStockData, 30000);
 
-    // 初回実行
     updateDisplay();
   </script>
 </body>
